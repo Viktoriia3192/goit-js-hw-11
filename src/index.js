@@ -125,3 +125,4 @@ function scrollPage() {
     behavior: 'smooth',
   });
 }
+
