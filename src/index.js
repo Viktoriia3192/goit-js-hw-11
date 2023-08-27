@@ -2,7 +2,6 @@ import SimpleLightbox from 'simplelightbox';
 import Notiflix from 'notiflix';
 import axios from 'axios';
 
-
 axios.defaults.baseURL = 'https://pixabay.com/api/';
 const API_KEY = '39058445-583a5edd643a4562ace127962';
 
@@ -17,6 +16,9 @@ let isLoading = false;
 
 searchForm.addEventListener('submit', handleSearchFormSubmit);
 loadMoreBtn.addEventListener('click', loadMoreImages);
+
+// Приховуємо кнопку "Load More" при початковому завантаженні сторінки
+loadMoreBtn.style.display = 'none';
 
 function handleSearchFormSubmit(event) {
   event.preventDefault();
@@ -53,6 +55,7 @@ async function searchImages() {
     });
 
     const images = response.data.hits;
+    const totalHits = response.data.totalHits;
 
     if (images.length === 0) {
       Notiflix.Notify.failure('No images found for your query. Please try again.');
@@ -60,14 +63,16 @@ async function searchImages() {
       createGalleryMarkup(images);
       lightbox.refresh();
       page += 1;
-      Notiflix.Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
+      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
     }
+
+    hideLoadMoreBtnIfNeeded(totalHits);
+
   } catch (error) {
     console.error('Error fetching images:', error);
     Notiflix.Notify.failure('Something went wrong. Please try again later.');
   } finally {
     isLoading = false;
-    hideLoadMoreBtnIfNeeded();
   }
 }
 
@@ -97,8 +102,10 @@ function clearGallery() {
   gallery.innerHTML = '';
 }
 
-function hideLoadMoreBtnIfNeeded() {
-  if (page === 1) {
+function hideLoadMoreBtnIfNeeded(totalHits) {
+  const displayedImages = page * 40;
+
+  if (displayedImages >= totalHits) {
     loadMoreBtn.style.display = 'none';
   } else {
     loadMoreBtn.style.display = 'block';
